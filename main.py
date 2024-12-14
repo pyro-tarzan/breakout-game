@@ -1,7 +1,5 @@
 from turtle import Screen, Turtle
-from paddle import Paddle
-from ball import Ball
-from block import Block
+from breakout import Paddle, Ball, Block, Score
 import time
 
 WIDTH = 1200
@@ -14,6 +12,8 @@ def start_game():
     screen.bgcolor("black")
     screen.setup(WIDTH, HEIGHT)
     screen.tracer(0)
+
+    score = Score(0)
 
     breakout = Turtle()
     breakout.penup()
@@ -37,7 +37,7 @@ def start_game():
     ROWS = 9  # Number of rows
     COLS = 21  # Number of columns
     START_Y = 250  # Starting y-position for blocks
-    START_X = -WIDTH // 2 + (BLOCK_WIDTH // 2)  # Starting x-position for blocks
+    START_X = 20 - WIDTH // 2 + (BLOCK_WIDTH // 2)  # Starting x-position for blocks
 
     # Create blocks
     blocks = []
@@ -67,11 +67,21 @@ def start_game():
         # UPDATE THE ANIMATION
         is_game_on = True
         while is_game_on:
-            time.sleep(0.05)
+            if score.score > 600:
+                time.sleep(0.03)
+            elif score.score > 300:
+                time.sleep(0.035)
+            elif score.score > 100:
+                time.sleep(0.04)
+            elif score.score > 50:
+                time.sleep(0.045)
+            else:
+                time.sleep(0.05)
+
             screen.update()
             ball.move()
 
-            if ball.ycor() + .25 > HEIGHT // 2:
+            if ball.ycor() + .25 > HEIGHT // 2 - 70:
                 ball.bounce_y()
             
             if ball.xcor() + .25 > WIDTH // 2 or ball.xcor() - .25 < -WIDTH // 2:
@@ -93,12 +103,18 @@ def start_game():
             if ball.ycor() - 10 > paddle.ycor() + 20:
                 ball.reset_bounce()
 
-            for block in blocks[:]:
-                if abs(ball.xcor() - block.xcor()) < 27.5 and abs(ball.ycor() - block.ycor()) < 12.5:
-                    block.hideturtle()
-                    blocks.remove(block)
-                    ball.bounce_y()
-                    break  # To avoid multiple collisions at once
+            if len(blocks) <= 0:
+                break
+            else:
+                for block in blocks[:]:
+                    if abs(ball.xcor() - block.xcor()) < 27.5 and abs(ball.ycor() - block.ycor()) < 12.5:
+                        block.hideturtle()
+                        blocks.remove(block)
+                        score.clear()
+                        score.score += 5
+                        score.write(f"Score: {score.score}", align="right", font=("Courier", 16, "bold"))
+                        ball.bounce_y()
+                        break 
 
             if ball.ycor() < -320:
                 ball.stop()
